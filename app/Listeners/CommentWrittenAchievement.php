@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Events\AchievementUnlocked;
 use App\Events\CommentWritten;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -39,9 +40,9 @@ class CommentWrittenAchievement
         }
         $commentsWrittenByUser = count($user->comments()->get());
         $commentWrittenAchievements = AchievementsList::where('type', 'Comment')->get();
-        $achivementIds = [];
+        $achievementIds = [];
         foreach ($commentWrittenAchievements as  $value) {
-            $achivementIds[] = $value->id;
+            $achievementIds[] = $value->id;
         }
         $getuserAchievements = UserAchievements::select('achievement_id')
                                             ->where('user_id', $user->id)
@@ -59,6 +60,7 @@ class CommentWrittenAchievement
                     'user_id' => $user->id
                 ]);
                 $unlockedAchievements[] = $inserted->achievement_id;
+                event(new AchievementUnlocked($achievement->name, $user));
             }
         }
 
