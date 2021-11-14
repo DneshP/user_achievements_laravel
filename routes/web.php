@@ -10,10 +10,10 @@ use App\Models\Comment;
 
 Route::get('/users/{user}/achievements', [AchievementsController::class, 'index']);
 Route::get('/lessonWatched', function() {
-    $user = User::find(1);
+    $user = User::first();
     event(new LessonWatched(new Lesson, $user));
-});
+    });
 Route::get('/commentWritten', function() {
-    $comment = Comment::find(1);
+    $comment = Comment::first();
     event(new CommentWritten($comment));
 });
