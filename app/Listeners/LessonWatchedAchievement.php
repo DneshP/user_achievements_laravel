@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\Event;
 use App\Models\UserAchievements;
 use App\Models\User;
 use App\Models\AchievementsList;
+use App\Models\BadgeList;
+use App\Models\UserBadge;
 use App\Events\AchievementUnlocked;
+use App\Events\BadgeUnlocked;
 
 class LessonWatchedAchievement
 {
@@ -32,7 +35,27 @@ class LessonWatchedAchievement
      */
     public function handle(LessonWatched $event)
     {
+      
         $user = $event->user;
+        /**
+         * Since the beginner badge requires 0 achievements
+         * and need to happen before the a achievement is unlocked.
+         * doing a check here.
+         * Alternatively we could trigger a event when a user registers for a course in this scenario
+         */
+        $currentAchievements = count($user->unlockedAchievements()->get());
+        $userBadges = $user->userBadges()->where('user_id', '=', $user->id)->get();
+        $BadgeList = new BadgeList();
+        foreach ($BadgeList->badgeList()->get() as $badge) {
+            if (count($userBadges) === 0 && $badge->count === $currentAchievements ) {
+            $inserted = UserBadge::create([
+                    'user_id' => $user->id,
+                    'badge_id' => $badge->id
+                ]);
+                event(new BadgeUnlocked($badge->name, $user));
+                break;
+            }
+        }
         $lesson = $event->lesson;
         $lessonsWatchedByUser = count($user->watched()->get());
         $lessonWatchedAchievements = AchievementsList::where('type', 'Lesson')->get();
@@ -52,6 +75,7 @@ class LessonWatchedAchievement
         }
         foreach ($lessonWatchedAchievements as $achievement) {
             if ($achievement->count === $lessonsWatchedByUser && !in_array($achievement->id, $unlockedAchievements)) {
+               
                 // Unlock Achievement yay
                 $inserted = UserAchievements::create([
                     'achievement_id' => $achievement->id,
