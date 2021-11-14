@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\AchievementUnlocked;
+use App\Events\BadgeUnlocked;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
@@ -51,6 +52,7 @@ class AchievementUnlockedNotification
                     'user_id' => $user->id
                 ]);
                 $unlockedBadges[] = $inserted->id;
+                event(new BadgeUnlocked($badge->name, $user));
             }
         }
     }
