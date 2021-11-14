@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Event;
 use App\Models\UserAchievements;
 use App\Models\User;
 use App\Models\AchievementsList;
+use App\Events\AchievementUnlocked;
 
 class LessonWatchedAchievement
 {
@@ -51,12 +52,13 @@ class LessonWatchedAchievement
         }
         foreach ($lessonWatchedAchievements as $achievement) {
             if ($achievement->count === $lessonsWatchedByUser && !in_array($achievement->id, $unlockedAchievements)) {
-                // Unlock Achivement yay
+                // Unlock Achievement yay
                 $inserted = UserAchievements::create([
                     'achievement_id' => $achievement->id,
                     'user_id' => $user->id
                 ]);
                 $unlockedAchievements[] = $inserted->achievement_id;
+                event(new AchievementUnlocked($achievement->name, $user));
             }
         }
     }
