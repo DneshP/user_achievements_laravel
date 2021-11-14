@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Comment;
 use App\Models\UserAchievements;
+use App\Models\UserBadge;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -73,4 +74,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserAchievements::class);
     }
+
+    /**
+     * The badges that belong to the user
+     */
+    public function userBadges()
+    {
+        return $this->hasMany(UserBadge::class);
+    }
+
 }
