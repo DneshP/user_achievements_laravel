@@ -31,7 +31,7 @@ class EventServiceProvider extends ServiceProvider
             AchievementUnlockedNotification::class
         ],
         BadgeUnlocked::class => [
-            BadgeUnlockedNotification::class
+           //
         ]
     ];
 
