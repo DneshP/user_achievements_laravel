@@ -107,7 +107,7 @@ class UserProgressTest extends TestCase
      * Lessons watched by user
      * @todo to automate all scenarios
      */
-    public function test_lessons_watched_all()
+    public function all_lessons_watched_achievements()
     {
         $this->migrateAndSeed();
         $user = User::factory()->create();
