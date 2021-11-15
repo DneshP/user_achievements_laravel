@@ -43,7 +43,7 @@ class LessonWatchedAchievement
          * doing a check here.
          * Alternatively we could trigger a event when a user registers for a course in this scenario
          */
-        $currentAchievements = count($user->unlockedAchievements()->get());
+        $currentAchievements = count($user->unlockedAchievements()->where('user_id', $user->id)->get());
         $userBadges = $user->userBadges()->where('user_id', '=', $user->id)->get();
         $BadgeList = new BadgeList();
         foreach ($BadgeList->badgeList()->get() as $badge) {
@@ -73,9 +73,9 @@ class LessonWatchedAchievement
         foreach ($getuserAchievements as $value) {
             $unlockedAchievements[] = $value->achievement_id;
         }
-        foreach ($lessonWatchedAchievements as $achievement) {
+        foreach ($lessonWatchedAchievements as $key => $achievement) {
+            
             if ($achievement->count === $lessonsWatchedByUser && !in_array($achievement->id, $unlockedAchievements)) {
-               
                 // Unlock Achievement yay
                 $inserted = UserAchievements::create([
                     'achievement_id' => $achievement->id,

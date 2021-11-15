@@ -47,7 +47,7 @@ class CommentWrittenAchievement
          * doing a check here.
          * Alternatively we could trigger a event when a user registers for a course in this scenario
          */
-        $currentAchievements = count($user->unlockedAchievements()->get());
+        $currentAchievements = count($user->unlockedAchievements()->where('user_id', $user->id)->get());
         $userBadges = $user->userBadges()->where('user_id', '=', $user->id)->get();
         $BadgeList = new BadgeList();
         foreach ($BadgeList->badgeList()->get() as $badge) {
@@ -74,7 +74,7 @@ class CommentWrittenAchievement
         foreach ($getuserAchievements as $value) {
             $unlockedAchievements[] = $value->achievement_id;
         }
-        foreach ($commentWrittenAchievements as $achievement) {
+        foreach ($commentWrittenAchievements as $key => $achievement) {
             if ($achievement->count === $commentsWrittenByUser && !in_array($achievement->id, $unlockedAchievements)) {
                 // Unlock Achievement yay
                 $inserted = UserAchievements::create([
