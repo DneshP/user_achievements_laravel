@@ -17,30 +17,10 @@ class UserLessonSeeder extends Seeder
         DB::table('lesson_user')
             ->insert([
                 [
-                    'user_id' => 1,
+                    'user_id' => 3,
                     'lesson_id' => 1,
                     'watched' => true
                 ]
-                // [
-                //     'user_id' => 1,
-                //     'lesson_id' => 2,
-                //     'watched' => true
-                // ],
-                // [
-                //     'user_id' => 1,
-                //     'lesson_id' => 3,
-                //     'watched' => true
-                // ],
-                // [
-                //     'user_id' => 1,
-                //     'lesson_id' => 4,
-                //     'watched' => true
-                // ],
-                // [
-                //     'user_id' => 1,
-                //     'lesson_id' => 5,
-                //     'watched' => true
-                // ]
             ]);
     }
 }
