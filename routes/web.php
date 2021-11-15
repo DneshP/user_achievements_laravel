@@ -9,11 +9,11 @@ use App\Models\Lesson;
 use App\Models\Comment;
 
 Route::get('/users/{user}/achievements', [AchievementsController::class, 'index']);
-Route::get('/lessonWatched', function() {
-    $user = User::first();
+Route::get('/lessonWatched/{userId}', function($userId) {
+    $user = User::where('id', $userId)->first();
     event(new LessonWatched(new Lesson, $user));
     });
-Route::get('/commentWritten', function() {
-    $comment = Comment::first();
+Route::get('/commentWritten/{commentId}', function($commentId) {
+    $comment = Comment::where('id', $commentId)->first();
     event(new CommentWritten($comment));
 });
