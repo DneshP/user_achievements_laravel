@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\UserAchievements;
 use App\Models\AchievementsList;
 use App\Models\UserBadge;
@@ -37,7 +38,7 @@ class AchievementsController extends Controller
     private function getUnlockedAchievements()
     {
         if (!$this->unlockedAchievements) {
-            $this->unlockedAchievements = UserAchievements::select('*')
+        $this->unlockedAchievements = UserAchievements::select('*')
                                                             ->leftjoin('achievement_list as al', 'al.id', '=', 'user_achievements.achievement_id')
                                                             ->where('user_id', $this->user->id)
                                                             ->get();
