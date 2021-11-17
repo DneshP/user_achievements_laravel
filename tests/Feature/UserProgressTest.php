@@ -44,96 +44,84 @@ class UserProgressTest extends TestCase
     }
 
     /**
-     * lesson watched by user
-     */
-    public function test_lesson_watched()
-    {
-        $this->migrateAndSeed();
-        $user = User::factory()->create();
-        UserLesson::factory()->create([
-            'user_id' =>$user->id,
-            'lesson_id' => 1,
-            'watched' => 1
-        ]);
-
-        $this->get("/lessonWatched/{$user->id}");
-        $response = $this->get("/users/{$user->id}/achievements");
-        $data = $response->getData();
-        
-        $response->assertStatus(200);
-
-        $this->assertCount(
-            1,
-            $data->unlocked_achievements, "Unlocked Achievements should have 1 achievement"
-        );
-        $this->assertCount(
-            2,
-            $data->next_available_achievements, "Next Achievements should have 2 achievement"
-        );
-        $this->assertContains('First Comment Written', $data->next_available_achievements);
-        $this->assertContains('5 Lessons Watched', $data->next_available_achievements);
-        $this->validateBadgeStatus($data, 1);
-    }
-
-    /**
-     * Comment Written by user
-     */
-    public function test_comment_written()
-    {
-        $this->migrateAndSeed();
-        $user = User::factory()->create();
-        $inserted = Comment::factory()->create([
-            'body' => 'test',
-            'user_id' => $user->id
-        ]);
-
-        $this->get("/commentWritten/{$inserted->id}");
-        $response = $this->get("/users/{$user->id}/achievements");
-        $data = $response->getData();
-        $response->assertStatus(200);
-        $this->assertContains('3 Comments Written', $data->next_available_achievements);
-        $this->assertCount(
-                1,
-                $data->unlocked_achievements, "Unlocked Achievements should have 1 achievement"
-            );
-        $this->assertCount(
-            2,
-            $data->next_available_achievements, "Next Achievements should have 2 achievement"
-        );
-            $this->validateBadgeStatus($data, 1);
-    }
-
-    /**
      * Lessons watched by user
-     * @todo to automate all scenarios
      */
-    public function all_lessons_watched_achievements()
+    public function test_lessons_watched_achievements()
     {
         $this->migrateAndSeed();
         $user = User::factory()->create();
-        // UserLesson::factory()->create([
-        //         'user_id' =>$user->id,
-        //         'lesson_id' => 1,
-        //         'watched' => 1
-        //     ]);
         $lessonWatchedAchievements = AchievementsList::where('type', 'Lesson')->get();
-        foreach ($lessonWatchedAchievements as $key => $value) {
+        $lastAchievement = count($lessonWatchedAchievements);
+        foreach ($lessonWatchedAchievements as $key => $achievement) {
             $index = (int) $key;
-            $lessons = (array_key_exists($index - 1,$lessonWatchedAchievements)) ? $value->count - $lessonWatchedAchievements[$index - 1]->count : $value->count;
+            $lessons = (array_key_exists($index - 1,$lessonWatchedAchievements)) ? $achievement->count - $lessonWatchedAchievements[$index - 1]->count : $achievement->count;
             for ($i=0; $i < $lessons; $i++) { 
                 UserLesson::factory()->create([
                 'user_id' =>$user->id,
                 'lesson_id' => 1,
                 'watched' => 1
             ]);
+            $this->get("/lessonWatched/{$user->id}");
             }
-            // $this->get("/lessonWatched/{$user->id}");
-            // $response = $this->get("/users/{$user->id}/achievements");
-            // $data = $response->getData();
+            $response = $this->get("/users/{$user->id}/achievements");
+            $data = $response->getData();
+            $count = $key + 1;
+            $nextAvailableCount = 2; 
+            $response->assertStatus(200);
+            $this->assertCount(
+                $count,
+                $data->unlocked_achievements, "Unlocked Achievements should have $count achievement"
+            );
+            if ($lastAchievement === $count) {
+                $nextAvailableCount = 1;
+            }
+            $this->assertCount(
+                $nextAvailableCount,
+                $data->next_available_achievements, "Next Achievements should have $nextAvailableCount achievement"
+            );
+            $this->assertContains($achievement->name, $data->unlocked_achievements);
+            $this->validateBadgeStatus($data, $count);
         }
-     
+    }
 
-  
+    /**
+     * Comments Achievements Unlocked By User
+     */
+    public function test_comment_achievements()
+    {
+        $this->migrateAndSeed();
+        $user = User::factory()->create();
+        $commentsWrittenAchievements = AchievementsList::where('type', 'Comment')->get();
+        $lastAchievement = count($commentsWrittenAchievements);
+        foreach ($commentsWrittenAchievements as $key => $achievement) {
+            $index = (int) $key;
+            $comments = (array_key_exists($index - 1,$commentsWrittenAchievements)) ? $achievement->count - $lessonWatchedAchievements[$index - 1]->count : $achievement->count;
+            for ($i=0; $i < $comments; $i++) { 
+                $inserted = Comment::factory()->create([
+                    'body' => 'test',
+                    'user_id' => $user->id
+                ]);
+            $this->get("/commentWritten/{$inserted->id}");
+            }
+            $response = $this->get("/users/{$user->id}/achievements");
+            $data = $response->getData();
+            $count = $key + 1;
+            $nextAvailableCount = 2; 
+            $response->assertStatus(200);
+            $this->assertCount(
+                $count,
+                $data->unlocked_achievements, "Unlocked Achievements should have $count achievements"
+            );
+            if ($lastAchievement === $count) {
+                $nextAvailableCount = 1;
+            }
+            $this->assertCount(
+                $nextAvailableCount,
+                $data->next_available_achievements, "Next Achievements should have $nextAvailableCount achievements"
+            );
+            $this->assertContains($achievement->name, $data->unlocked_achievements);
+            $this->validateBadgeStatus($data, $count);
+        }
     }
 
     /**
@@ -159,6 +147,7 @@ class UserProgressTest extends TestCase
     
         $this->get("/lessonWatched/{$user->id}");
         Event::assertDispatched(LessonWatched::class);
+        // Event::asserDispatched(AchievementUnlocked::class);
 
         $inserted = Comment::factory()->create([
             'body' => 'test',

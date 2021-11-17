@@ -14,10 +14,6 @@ use App\Events\BadgeUnlocked;
 class AchievementsController extends Controller
 {
     private $user;
-    private $availableAchievements;
-    private $unlockedAchievements;
-    private $unlockedBadges;
-    private $availableBadges;
 
     public function index(User $user)
     {
@@ -37,13 +33,10 @@ class AchievementsController extends Controller
      */
     private function getUnlockedAchievements()
     {
-        if (!$this->unlockedAchievements) {
-        $this->unlockedAchievements = UserAchievements::select('*')
-                                                            ->leftjoin('achievement_list as al', 'al.id', '=', 'user_achievements.achievement_id')
-                                                            ->where('user_id', $this->user->id)
-                                                            ->get();
-        }
-        return $this->unlockedAchievements;
+        return UserAchievements::select('*')
+                                    ->leftjoin('achievement_list as al', 'al.id', '=', 'user_achievements.achievement_id')
+                                    ->where('user_id', $this->user->id)
+                                    ->get();
     }
 
     /**
@@ -51,15 +44,12 @@ class AchievementsController extends Controller
      */
     public function availableAchievements()
     {
-        if (!$this->availableAchievements) {
-            $achievementGroup = [];
-            $achievements = AchievementsList::select('id', 'order', 'name', 'type')->orderBy('order')->get();
-            foreach ($achievements as $achievement) {
-                $achievementGroup[$achievement->type][] = $achievement;
-            }
-            $this->availableAchievements = $achievementGroup;
+        $achievementGroup = [];
+        $achievements = AchievementsList::select('id', 'order', 'name', 'type')->orderBy('order')->get();
+        foreach ($achievements as $achievement) {
+            $achievementGroup[$achievement->type][] = $achievement;
         }
-        return $this->availableAchievements;
+        return $achievementGroup;
     }
 
     /**
@@ -67,14 +57,11 @@ class AchievementsController extends Controller
      */
     public function getUserBadges()
     {
-        if (!$this->unlockedBadges) {
-            $this->unlockedBadges = UserBadge::select('user_badges.id', 'user_badges.user_id', 'user_badges.badge_id', 'bl.order', 'bl.name')
-                                                    ->leftjoin('badge_lists as bl', 'bl.id', '=', 'user_badges.badge_id')
-                                                    ->where('user_id', $this->user->id)
-                                                    ->orderBy('bl.order')
-                                                    ->get();
-        }
-        return $this->unlockedBadges;
+        return UserBadge::select('user_badges.id', 'user_badges.user_id', 'user_badges.badge_id', 'bl.order', 'bl.name')
+                                                ->leftjoin('badge_lists as bl', 'bl.id', '=', 'user_badges.badge_id')
+                                                ->where('user_id', $this->user->id)
+                                                ->orderBy('bl.order')
+                                                ->get();
     }
 
     /**
@@ -82,10 +69,7 @@ class AchievementsController extends Controller
      */
     public function availableBadges()
     {
-        if (!$this->availableBadges) {
-            $this->availableBadges = BadgeList::select('id', 'name', 'count', 'order')->orderBy('count')->get();
-        }
-        return $this->availableBadges;
+        return BadgeList::select('id', 'name', 'count', 'order')->orderBy('count')->get();
     }
 
     /**
