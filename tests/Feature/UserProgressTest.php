@@ -30,7 +30,6 @@ class UserProgressTest extends TestCase
     {
         $this->migrateAndSeed();
         $user = User::factory()->create();
-        
         $response = $this->get("/users/{$user->id}/achievements");
         $data = $response->getData();
 
@@ -132,8 +131,6 @@ class UserProgressTest extends TestCase
     {
         $this->migrateAndSeed();
         $user = User::factory()->create();
-    
-
         Event::fake();
 
         $this->get("/users/{$user->id}/achievements");
@@ -147,7 +144,7 @@ class UserProgressTest extends TestCase
     
         $this->get("/lessonWatched/{$user->id}");
         Event::assertDispatched(LessonWatched::class);
-        // Event::asserDispatched(AchievementUnlocked::class);
+        // Event::assertDispatched(AchievementUnlocked::class);
 
         $inserted = Comment::factory()->create([
             'body' => 'test',
@@ -155,6 +152,7 @@ class UserProgressTest extends TestCase
         ]);
         $this->get("/commentWritten/{$inserted->id}");
         Event::assertDispatched(CommentWritten::class);
+        // Event::assertDispatched(AchievementUnlocked::class);
 
         Event::assertListening(
             AchievementUnlocked::class,
