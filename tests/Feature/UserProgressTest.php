@@ -100,7 +100,7 @@ class UserProgressTest extends TestCase
                     'body' => 'test',
                     'user_id' => $user->id
                 ]);
-            $this->get("/commentWritten/{$inserted->id}");
+            $this->get("/commentWritten/{$user->id}");
             }
             $response = $this->get("/users/{$user->id}/achievements");
             $data = $response->getData();
@@ -150,7 +150,7 @@ class UserProgressTest extends TestCase
             'body' => 'test',
             'user_id' => $user->id
         ]);
-        $this->get("/commentWritten/{$inserted->id}");
+        $this->get("/commentWritten/{$user->id}");
         Event::assertDispatched(CommentWritten::class);
         // Event::assertDispatched(AchievementUnlocked::class);
 
