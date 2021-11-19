@@ -10,10 +10,12 @@ use App\Models\Comment;
 
 Route::get('/users/{user}/achievements', [AchievementsController::class, 'index']);
 Route::get('/lessonWatched/{userId}', function($userId) {
-    $user = User::where('id', $userId)->first();
+    $user = User::findOrFail($userId);
     event(new LessonWatched(new Lesson, $user));
     });
-Route::get('/commentWritten/{commentId}', function($commentId) {
-    $comment = Comment::where('id', $commentId)->first();
+Route::get('/commentWritten/{userId}', function($userId) {
+    $user = User::findOrFail($userId);
+    $comment = $user->comments()->latest('created_at')->first();
+    $comment = Comment::findOrFail($comment->id??0);
     event(new CommentWritten($comment));
 });
