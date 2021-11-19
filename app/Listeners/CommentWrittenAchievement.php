@@ -36,52 +36,50 @@ class CommentWrittenAchievement
      */
     public function handle(CommentWritten $event)
     {
-        $collection = $event->comment->user()->get();
-        $user;
-        foreach ($collection as $value) {
-            $user = $value;
-        }
-        /**
+        $user = $event->comment->user;
+       /**
          * Since the beginner badge requires 0 achievements
          * and need to happen before the a achievement is unlocked.
          * doing a check here.
          * Alternatively we could trigger a event when a user registers for a course in this scenario
          */
-        $currentAchievements = count($user->unlockedAchievements()->where('user_id', $user->id)->get());
-        $userBadges = $user->userBadges()->where('user_id', '=', $user->id)->get();
-        $BadgeList = new BadgeList();
-        foreach ($BadgeList->badgeList()->get() as $badge) {
-            if (count($userBadges) === 0 && $badge->count === $currentAchievements ) {
+        $currentAchievements = count($user->achievements);
+        $userBadges = $user->badges;
+        $userBadgeIds = [];
+        foreach($userBadges as $badge) {
+            $userBadgeIds[] = $badge->badge_id;
+        }
+        $badgeList = BadgeList::orderBy('order', 'asc')->get();
+        foreach ($badgeList as $badge) {
+            if (!in_array($badge->id, $userBadgeIds) && $badge->count === $currentAchievements) {
                 $inserted = UserBadge::create([
-                    'user_id' => $user->id,
-                    'badge_id' => $badge->id
-                ]);
+                        'user_id' => $user->id,
+                        'badge_id' => $badge->id
+                    ]);
                 event(new BadgeUnlocked($badge->name, $user));
                 break;
             }
         }
-        $commentsWrittenByUser = count($user->comments()->get());
-        $commentWrittenAchievements = AchievementsList::where('type', 'Comment')->get();
+
+        $commentsWrittenByUser = count($user->comments);
+        $commentWrittenAchievements = AchievementsList::select('id', 'name', 'count')
+                                                ->where('type', 'Comment')->get();
         $achievementIds = [];
         foreach ($commentWrittenAchievements as  $value) {
             $achievementIds[] = $value->id;
         }
-        $getuserAchievements = UserAchievements::select('achievement_id')
-                                            ->where('user_id', $user->id)
-                                            ->whereIn('achievement_id', $achievementIds)
-                                            ->get();
-        $unlockedAchievements = [];
-        foreach ($getuserAchievements as $value) {
-            $unlockedAchievements[] = $value->achievement_id;
-        }
+        $unlockedAchievements = UserAchievements::select('achievement_id')
+                                                ->where('user_id', $user->id)
+                                                ->whereIn('achievement_id', $achievementIds)
+                                                ->get()->toArray();
+        $unlockedAchievementIds = array_map(fn($value) => $value['achievement_id'], $unlockedAchievements);
         foreach ($commentWrittenAchievements as $key => $achievement) {
-            if ($achievement->count === $commentsWrittenByUser && !in_array($achievement->id, $unlockedAchievements)) {
+            if ($achievement->count === $commentsWrittenByUser && !in_array($achievement->id, $unlockedAchievementIds)) {
                 // Unlock Achievement yay
                 $inserted = UserAchievements::create([
                     'achievement_id' => $achievement->id,
                     'user_id' => $user->id
                 ]);
-                $unlockedAchievements[] = $inserted->achievement_id;
                 event(new AchievementUnlocked($achievement->name, $user));
             }
         }
