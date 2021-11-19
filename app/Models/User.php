@@ -70,7 +70,7 @@ class User extends Authenticatable
     /**
      * The Achievements unlocked by the user.
      */
-    public function unlockedAchievements()
+    public function achievements()
     {
         return $this->hasMany(UserAchievements::class);
     }
@@ -78,9 +78,9 @@ class User extends Authenticatable
     /**
      * The badges that belong to the user
      */
-    public function userBadges()
+    public function badges()
     {
-        return $this->hasMany(UserBadge::class);
+        return $this->hasMany(UserBadge::class,);
     }
 
 }
