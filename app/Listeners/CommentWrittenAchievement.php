@@ -44,11 +44,8 @@ class CommentWrittenAchievement
          * Alternatively we could trigger a event when a user registers for a course in this scenario
          */
         $currentAchievements = count($user->achievements);
-        $userBadges = $user->badges;
-        $userBadgeIds = [];
-        foreach($userBadges as $badge) {
-            $userBadgeIds[] = $badge->badge_id;
-        }
+        $userBadges = $user->badges()->get()->toArray();
+        $userBadgeIds = array_map(fn($value) => $value['badge_id'], $userBadges);
         $badgeList = BadgeList::orderBy('order', 'asc')->get();
         foreach ($badgeList as $badge) {
             if (!in_array($badge->id, $userBadgeIds) && $badge->count === $currentAchievements) {
