@@ -33,10 +33,9 @@ class AchievementsController extends Controller
      */
     private function getUnlockedAchievements()
     {
-        return UserAchievements::select('*')
-                                    ->leftjoin('achievement_list as al', 'al.id', '=', 'user_achievements.achievement_id')
-                                    ->where('user_id', $this->user->id)
-                                    ->get();
+        return $this->user->achievements()
+                            ->leftjoin('achievement_list as al', 'al.id', '=', 'user_achievements.achievement_id')
+                            ->get();
     }
 
     /**
@@ -57,7 +56,7 @@ class AchievementsController extends Controller
      */
     public function getUserBadges()
     {
-        return UserBadge::select('user_badges.id', 'user_badges.user_id', 'user_badges.badge_id', 'bl.order', 'bl.name')
+        return $this->user->badges()->select('user_badges.id', 'user_badges.user_id', 'user_badges.badge_id', 'bl.order', 'bl.name')
                                                 ->leftjoin('badge_lists as bl', 'bl.id', '=', 'user_badges.badge_id')
                                                 ->where('user_id', $this->user->id)
                                                 ->orderBy('bl.order')
@@ -77,11 +76,8 @@ class AchievementsController extends Controller
      */
     public function getUnlockedAchievementNames()
     {
-        $name = [];
-        foreach ($this->getUnlockedAchievements() as $unlocked) {
-            $name[] = $unlocked->name;
-        } 
-        return $name;
+        $achievements = array_map(fn($value) => $value['name'], $this->getUnlockedAchievements()->toArray());
+        return $achievements;
     }
 
     /**
@@ -92,10 +88,17 @@ class AchievementsController extends Controller
         $availableAchievements = $this->availableAchievements();
         $currentAchievement = [];
         $nextAchievements = [];
+        /**
+         * currentAchievements based on categories
+         */
         foreach ($this->getUnlockedAchievements() as $achievement) {
             $value = ['type' => $achievement->type, 'order' => $achievement->order];
             $currentAchievement[$achievement->type] = (object) $value;
         }
+        /**
+         * If the category does not exist in the currentAchivement
+         * the first available achievement is added
+         */
         foreach ($availableAchievements as $key => $value) {
             if (!array_key_exists($key, $currentAchievement)) {
                 $nextAchievements[] =  $value[0]->name;
@@ -104,6 +107,7 @@ class AchievementsController extends Controller
         foreach ($currentAchievement as $key => $value) {
             $achievementList = $availableAchievements[$key];
             foreach ($achievementList as $achievement) {
+                //since it is a sorted list, exit when found matching
                 if ($value->order < $achievement->order) {
                     $nextAchievements[] = $achievement->name;
                     break; 
@@ -120,7 +124,7 @@ class AchievementsController extends Controller
     {
         $userBadges = $this->getUserBadges();
         if (count($userBadges) === 0) {
-            $currentAchievement = count($this->user->unlockedAchievements()->get());
+            $currentAchievement = count($this->user->achievements);
             foreach ($this->availableBadges() as $badge) {
                 if ($currentAchievement === $badge->count) {
                     $this->updateUserBadge($badge);
@@ -208,8 +212,5 @@ class AchievementsController extends Controller
         event(new BadgeUnlocked($badge->name, $this->user));
         $this->unlockedBadges = false;
         $this->getUserBadges();
-  
-
-      
     }
 }

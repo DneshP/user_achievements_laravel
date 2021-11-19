@@ -28,13 +28,12 @@ class DatabaseSeeder extends Seeder
         ->count(10)
         ->create();
 
-        // $comments = Comment::factory()
-        // ->count()
-        // ->create();
+        $comments = Comment::factory()
+        ->count(1)
+        ->create();
 
         $this->call([
             AchievementListSeeder::class,
-            // UserLessonSeeder::class,
             BadgeListSeeder::class
         ]);
     }

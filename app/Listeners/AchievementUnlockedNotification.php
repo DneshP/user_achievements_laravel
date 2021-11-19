@@ -33,14 +33,8 @@ class AchievementUnlockedNotification
     public function handle(AchievementUnlocked $event)
     {
         $user = $event->user;
-        $unlockedAchievements = count($user->unlockedAchievements()->where('user_id', $user->id)->get()->toArray());
-        $getUserBadges = UserBadge::select('badge_id')
-                                    ->where('user_id', $user->id)
-                                    ->get();
-        $unlockedBadges = [];
-        foreach ($getUserBadges as $value) {
-            $unlockedBadges[] = $value->badge_id;
-        }
+        $unlockedAchievements = count($user->achievements);
+        $unlockedBadges = array_map(fn($value) => $value['badge_id'], $user->badges()->toArray());
         $badges = BadgeList::select('id', 'name', 'count')
                     ->orderBy('order')
                     ->get();
@@ -51,7 +45,6 @@ class AchievementUnlockedNotification
                     'badge_id' => $badge->id,
                     'user_id' => $user->id
                 ]);
-                $unlockedBadges[] = $inserted->id;
                 event(new BadgeUnlocked($badge->name, $user));
             }
         }

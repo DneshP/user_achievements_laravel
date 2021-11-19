@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserAchievements extends Model
 {
-    use HasFactory;
-    
      /**
      * The attributes that are mass assignable.
      *
@@ -21,12 +19,4 @@ class UserAchievements extends Model
         'created_at',
         'updated_at',
     ];
-
-    /**
-     * The Achievements unlocked by the user.
-     */
-    public function unlockedAchievements()
-    {
-        return $this->belongsToMany(User::class);
-    }
 }
