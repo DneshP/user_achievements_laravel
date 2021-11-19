@@ -61,14 +61,13 @@ class LessonWatchedAchievement
         $lesson = $event->lesson;
         $lessonsWatchedByUser = count($user->watched);
         $lessonWatchedAchievements = AchievementsList::select('id', 'name', 'count')->where('type', 'Lesson')->get();
-        $achivementIds = [];
+        $achievementIds = [];
         foreach ($lessonWatchedAchievements as  $value) {
-            $achivementIds[] = $value->id;
+            $achievementIds[] = $value->id;
         }
-        $unlockedAchievements = UserAchievements::select('achievement_id')
-                                            ->where('user_id', $user->id)
-                                            ->whereIn('achievement_id', $achivementIds)
-                                            ->get()->toArray();
+        $unlockedAchievements = $user->achievements()->select('achievement_id')
+                                        ->whereIn('achievement_id', $achievementIds)
+                                        ->get()->toArray();
         $unlockedAchievementIds = array_map(fn($value) => $value['achievement_id'], $unlockedAchievements);
         foreach ($lessonWatchedAchievements as $key => $achievement) {
             if ($achievement->count === $lessonsWatchedByUser && !in_array($achievement->id, $unlockedAchievementIds)) {

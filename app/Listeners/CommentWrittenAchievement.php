@@ -68,8 +68,7 @@ class CommentWrittenAchievement
         foreach ($commentWrittenAchievements as  $value) {
             $achievementIds[] = $value->id;
         }
-        $unlockedAchievements = UserAchievements::select('achievement_id')
-                                                ->where('user_id', $user->id)
+        $unlockedAchievements = $user->achievements()->select('achievement_id')
                                                 ->whereIn('achievement_id', $achievementIds)
                                                 ->get()->toArray();
         $unlockedAchievementIds = array_map(fn($value) => $value['achievement_id'], $unlockedAchievements);
