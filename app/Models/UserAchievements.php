@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserAchievements extends Model
 {
-    use HasFactory;
-    
      /**
      * The attributes that are mass assignable.
      *
